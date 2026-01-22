@@ -1,0 +1,5 @@
+{
+  "name": "Controle de Contas ",
+  "description": "Um controlador financeiro inteligente para gerenciar contas fixas e variáveis como energia, água, terreno e mais, com insights automáticos.",
+  "requestFramePermissions": []
+}
