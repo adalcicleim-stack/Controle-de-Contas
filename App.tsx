@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Plus, 
@@ -28,7 +29,8 @@ import {
   ShieldCheck,
   Check,
   Share,
-  PlusSquare
+  PlusSquare,
+  Info
 } from 'lucide-react';
 import { Bill, BillCategory, FinancialSummary } from './types';
 import { getCategoryMeta, UI_ICONS } from './constants';
@@ -45,6 +47,7 @@ const App: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const [showInstallBanner, setShowInstallBanner] = useState(true);
   
   const [customCategories, setCustomCategories] = useState<string[]>([]);
 
@@ -68,16 +71,20 @@ const App: React.FC = () => {
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      console.log('BillControl: Pronto para instalação');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    // Detecta se já está rodando como App
     if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
       setIsInstalled(true);
+      setShowInstallBanner(false);
     }
 
     window.addEventListener('appinstalled', () => {
       setIsInstalled(true);
+      setShowInstallBanner(false);
       setDeferredPrompt(null);
     });
 
@@ -379,7 +386,7 @@ const App: React.FC = () => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
     if (isStandalone || isInstalled) {
-      alert("BillControl AI já está instalado.");
+      alert("O BillControl AI já está instalado no seu dispositivo.");
       return;
     }
 
@@ -389,6 +396,7 @@ const App: React.FC = () => {
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
           setDeferredPrompt(null);
+          setIsInstalled(true);
         }
       } catch (err) {
         console.error('Erro ao processar instalação:', err);
@@ -396,7 +404,7 @@ const App: React.FC = () => {
     } else if (isIOS) {
       setShowIOSInstructions(true);
     } else {
-      alert("Instalação no Android:\n1. Use o Google Chrome.\n2. Clique nos 3 pontos e selecione 'Instalar aplicativo'.");
+      alert("Para instalar:\n1. Certifique-se de usar o Chrome.\n2. Clique nos 3 pontos e escolha 'Instalar aplicativo' ou 'Adicionar à tela inicial'.");
     }
   };
 
@@ -514,6 +522,16 @@ const App: React.FC = () => {
               />
             </div>
             <div className="flex items-center gap-2">
+              {!isInstalled && (
+                <button 
+                  onClick={handleInstallApp}
+                  title="Instalar App"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-600 p-2.5 rounded-xl transition-all border border-slate-200 flex items-center gap-2 px-4 group"
+                >
+                  <Download size={20} className="group-hover:translate-y-0.5 transition-transform" />
+                  <span className="hidden sm:inline font-bold text-xs">Instalar</span>
+                </button>
+              )}
               <button onClick={clearAllData} title="Limpar tudo" className="text-slate-400 hover:text-rose-600 p-2.5 rounded-xl transition-all hover:bg-rose-50 border border-transparent hover:border-rose-100">
                 <Eraser size={20} />
               </button>
@@ -526,6 +544,33 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-8 mt-8 space-y-8">
+        
+        {/* Banner de Instalação Refinado */}
+        {!isInstalled && showInstallBanner && (
+          <section className="animate-in slide-in-from-top-4 duration-500 bg-white border border-indigo-100 p-6 rounded-[2rem] shadow-xl shadow-indigo-50 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4">
+              <button onClick={() => setShowInstallBanner(false)} className="text-slate-300 hover:text-slate-500 transition-colors">
+                <XCircle size={20} />
+              </button>
+            </div>
+            <div className="bg-indigo-600 p-5 rounded-3xl text-white shadow-lg shadow-indigo-200 shrink-0">
+               <Smartphone size={32} />
+            </div>
+            <div className="flex-1 space-y-2 text-center md:text-left">
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">BillControl na sua Tela de Início</h3>
+              <p className="text-slate-500 text-sm font-medium leading-relaxed">Instale para acesso offline, notificações inteligentes e carregamento instantâneo como um aplicativo nativo.</p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+               <button 
+                onClick={handleInstallApp}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-black text-sm flex items-center gap-2 transition-all shadow-md active:scale-95 whitespace-nowrap"
+               >
+                 <Download size={18} /> Instalar Agora
+               </button>
+            </div>
+          </section>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <SummaryCard title="Receita Bruta" value={summary.income} icon={UI_ICONS.Income} variant="info" />
           <SummaryCard title="Descontado" value={summary.totalPaid} icon={<ArrowDownCircle className="text-emerald-500" />} variant="success" />
@@ -762,9 +807,11 @@ const App: React.FC = () => {
         <footer className="mt-16 pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500">
            <div className="text-[10px] font-black uppercase tracking-[0.2em]">© {currentYear} BillControl AI • PWA para Android e iPhone</div>
            <div className="flex items-center gap-6">
-              <button onClick={handleInstallApp} className="text-[10px] font-bold uppercase text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
-                <Smartphone size={12} /> Instalar App
-              </button>
+              {!isInstalled && (
+                <button onClick={handleInstallApp} className="text-[10px] font-bold uppercase text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
+                  <Smartphone size={12} /> Instalar App
+                </button>
+              )}
               <a href="https://ai.google.dev/gemini-api/docs/billing" className="text-[10px] font-bold uppercase text-indigo-600 hover:text-indigo-800 transition-colors">Cobrança API</a>
            </div>
         </footer>
