@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Plus, 
@@ -27,7 +26,9 @@ import {
   Smartphone,
   Download,
   ShieldCheck,
-  Check
+  Check,
+  Share,
+  PlusSquare
 } from 'lucide-react';
 import { Bill, BillCategory, FinancialSummary } from './types';
 import { getCategoryMeta, UI_ICONS } from './constants';
@@ -43,6 +44,7 @@ const App: React.FC = () => {
   const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
   
   const [customCategories, setCustomCategories] = useState<string[]>([]);
 
@@ -64,22 +66,17 @@ const App: React.FC = () => {
     if (savedCustomCats) setCustomCategories(JSON.parse(savedCustomCats));
 
     const handleBeforeInstallPrompt = (e: any) => {
-      // Impede o mini-infobar de aparecer no Chrome mobile
       e.preventDefault();
-      // Guarda o evento para ser disparado pelo botão
       setDeferredPrompt(e);
-      console.log('BillControl: Pronto para instalação no Android/Desktop');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Verificar se já está rodando como app standalone
     if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true) {
       setIsInstalled(true);
     }
 
-    window.addEventListener('appinstalled', (evt) => {
-      console.log('BillControl: App instalado com sucesso');
+    window.addEventListener('appinstalled', () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
     });
@@ -388,22 +385,18 @@ const App: React.FC = () => {
 
     if (deferredPrompt) {
       try {
-        console.log('BillControl: Disparando prompt de instalação...');
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-          console.log('BillControl: Usuário aceitou instalação');
           setDeferredPrompt(null);
-        } else {
-          console.log('BillControl: Usuário recusou instalação');
         }
       } catch (err) {
         console.error('Erro ao processar instalação:', err);
       }
     } else if (isIOS) {
-      alert("Para Android:\nUse o Google Chrome e clique em 'Baixar App Agora'. Se não funcionar, clique nos 3 pontos do navegador e em 'Instalar Aplicativo'.\n\nPara iOS (iPhone):\nClique no ícone de Compartilhar e 'Adicionar à Tela de Início'.");
+      setShowIOSInstructions(true);
     } else {
-      alert("Instalação no Android:\n1. Certifique-se de estar usando o Google Chrome.\n2. Clique nos 3 pontos no canto superior direito do navegador.\n3. Selecione 'Instalar aplicativo' ou 'Adicionar à tela inicial'.");
+      alert("Instalação no Android:\n1. Use o Google Chrome.\n2. Clique nos 3 pontos e selecione 'Instalar aplicativo'.");
     }
   };
 
@@ -767,14 +760,55 @@ const App: React.FC = () => {
         )}
 
         <footer className="mt-16 pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500">
-           <div className="text-[10px] font-black uppercase tracking-[0.2em]">© {currentYear} BillControl AI • PWA para Android e iOS</div>
+           <div className="text-[10px] font-black uppercase tracking-[0.2em]">© {currentYear} BillControl AI • PWA para Android e iPhone</div>
            <div className="flex items-center gap-6">
-              <a href="#" className="text-[10px] font-bold uppercase hover:text-slate-800 transition-colors">Termos</a>
-              <a href="#" className="text-[10px] font-bold uppercase hover:text-slate-800 transition-colors">Privacidade</a>
+              <button onClick={handleInstallApp} className="text-[10px] font-bold uppercase text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1">
+                <Smartphone size={12} /> Instalar App
+              </button>
               <a href="https://ai.google.dev/gemini-api/docs/billing" className="text-[10px] font-bold uppercase text-indigo-600 hover:text-indigo-800 transition-colors">Cobrança API</a>
            </div>
         </footer>
       </main>
+
+      {/* Instruções de Instalação para iOS */}
+      {showIOSInstructions && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center px-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl p-10 flex flex-col gap-8 scale-in-center">
+            <div className="flex justify-between items-start">
+              <div className="bg-indigo-100 p-4 rounded-3xl text-indigo-600">
+                <Smartphone size={32} />
+              </div>
+              <button onClick={() => setShowIOSInstructions(false)} className="text-slate-300 hover:text-rose-500 transition-colors">
+                <XCircle size={32} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-black text-slate-800 leading-tight">Adicionar ao iPhone</h2>
+              <p className="text-slate-500 font-medium">Siga os passos abaixo para instalar o BillControl AI na sua tela de início:</p>
+            </div>
+            <div className="space-y-6">
+              <div className="flex items-center gap-5">
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                  <Share size={24} className="text-indigo-600" />
+                </div>
+                <div className="text-sm font-bold text-slate-700">1. Toque no botão de <span className="text-indigo-600">Compartilhar</span> na barra do Safari.</div>
+              </div>
+              <div className="flex items-center gap-5">
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                  <PlusSquare size={24} className="text-indigo-600" />
+                </div>
+                <div className="text-sm font-bold text-slate-700">2. Role para baixo e toque em <span className="text-indigo-600">"Adicionar à Tela de Início"</span>.</div>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowIOSInstructions(false)}
+              className="w-full bg-slate-900 text-white py-5 rounded-3xl font-black uppercase tracking-widest text-sm shadow-xl transition-all active:scale-95"
+            >
+              Entendi
+            </button>
+          </div>
+        </div>
+      )}
 
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
