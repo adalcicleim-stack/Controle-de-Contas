@@ -766,49 +766,6 @@ const App: React.FC = () => {
           </section>
         )}
 
-        <section className="bg-slate-900 rounded-[2.5rem] p-8 sm:p-12 mt-16 text-white shadow-2xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
-            <div className="space-y-4 max-w-lg text-center md:text-left">
-              <div className="flex items-center gap-4 justify-center md:justify-start">
-                <div className="p-4 bg-indigo-600 rounded-2xl shadow-lg">
-                  <Smartphone size={28} />
-                </div>
-                <h2 className="text-3xl font-black tracking-tight">BillControl para Android</h2>
-              </div>
-              <p className="text-slate-400 text-lg font-medium leading-relaxed">
-                Instale o BillControl AI no seu celular Android através do Google Chrome para acesso rápido e seguro, offline e direto da tela inicial.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-5 pt-4 justify-center md:justify-start items-stretch">
-                 <button 
-                  onClick={handleInstallApp}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white min-h-[72px] px-10 rounded-2xl font-black flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-indigo-950 border-b-4 border-indigo-800 group"
-                 >
-                   {isInstalled ? <Check size={26} /> : <Download size={26} />}
-                   <span className="text-lg">{isInstalled ? 'Já Instalado' : 'Baixar App Agora'}</span>
-                 </button>
-                 <div className="flex items-center justify-center gap-3 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] bg-white/5 px-8 rounded-2xl border border-white/5">
-                    <ShieldCheck size={20} className="text-emerald-500" /> ANDROID PWA
-                 </div>
-              </div>
-            </div>
-            
-            <div className="hidden lg:block relative">
-               <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] rounded-full"></div>
-               <div className="bg-slate-800 p-6 rounded-[3rem] border border-slate-700 shadow-2xl rotate-3 transform transition-transform group-hover:rotate-0 duration-700">
-                  <div className="w-48 h-80 bg-slate-900 rounded-[2rem] flex flex-col items-center justify-center gap-4 border-4 border-slate-700">
-                     <div className="w-12 h-1 bg-slate-700 rounded-full mb-4"></div>
-                     <div className="bg-indigo-600 p-4 rounded-2xl text-white">
-                        <LayoutDashboard size={40} />
-                     </div>
-                     <div className="text-[10px] font-black uppercase text-slate-500 tracking-widest text-center px-4">Instale via Chrome</div>
-                  </div>
-               </div>
-            </div>
-          </div>
-        </section>
-
         <footer className="mt-16 pt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500">
            <div className="text-[10px] font-black uppercase tracking-[0.2em]">© {currentYear} BillControl AI • PWA para Android e iOS</div>
            <div className="flex items-center gap-6">
